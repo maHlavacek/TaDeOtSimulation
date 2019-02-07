@@ -14,9 +14,12 @@ namespace TadeotSimulation.Core
 
         public event EventHandler<string> Log;
 
+        private List<Visitor> _listOdVisitors;
+
 
         public Controller()
         {
+            _listOdVisitors = new List<Visitor>();
         }
 
         /// <summary>
@@ -26,9 +29,17 @@ namespace TadeotSimulation.Core
         {
             string fileName = Utils.MyFile.GetFullNameInApplicationTree("Visitors.csv");
             string[] lines = File.ReadAllLines(fileName, Encoding.Default);
-
-
-
+            string[] columns;
+            for (int i = 1; i < lines.Length; i++)
+            {
+                columns = lines[i].Split(';');
+                int id = int.Parse(columns[0]);
+                int adults = int.Parse(columns[3]);
+                DateTime entryDateAndTime = DateTime.Parse(columns[1] + " " + columns[2]);
+                Visitor visitor = new Visitor(id, adults, entryDateAndTime);
+                _listOdVisitors.Add(visitor);
+            }
+            Log?.Invoke(this, $"Read {_listOdVisitors.Count} visitors with {_listOdVisitors.Sum(s => s.Adults)} adults from csv-file");
         }
 
         /// <summary>
