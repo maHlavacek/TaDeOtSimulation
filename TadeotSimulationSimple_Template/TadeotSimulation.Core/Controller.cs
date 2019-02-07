@@ -71,7 +71,7 @@ namespace TadeotSimulation.Core
             if (waitingPeople.Count + waitingPeople.Sum(s => s.Adults) >= MIN_PEOPLE_PER_PRESENTATION
                 && !Presentation.Instance.IsRunning)
             {
-                Presentation.Instance.StartPresentation(waitingPeople, Log);
+                Presentation.Instance.StartPresentation(waitingPeople, Log,_listOdVisitors.Where(w => w.EntryTime <= fastClockTime).ToList());
             }
             if (Presentation.Instance.IsRunning)
             {

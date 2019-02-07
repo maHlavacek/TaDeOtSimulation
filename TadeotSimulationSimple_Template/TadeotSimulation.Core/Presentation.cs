@@ -11,6 +11,7 @@ namespace TadeotSimulation.Core
 
         private DateTime _startTime;
         private List<Visitor> _listOfVisitors;
+        private List<Visitor> _waiters;
         private static Presentation _instance;
         private EventHandler<string> _logFromController;
         #endregion
@@ -45,17 +46,18 @@ namespace TadeotSimulation.Core
         /// </summary>
         /// <param name="visitors"></param>
         /// <param name="LogFromController"></param>
-        public void StartPresentation(List<Visitor> visitors, EventHandler<string> LogFromController)
+        public void StartPresentation(List<Visitor> visitors, EventHandler<string> LogFromController,List<Visitor> waiters)
         {
             _listOfVisitors = new List<Visitor>();
             _listOfVisitors = visitors;
+            _waiters = waiters;
             _startTime = FastClock.Instance.Time;
             if (_logFromController == null)
             {
                 _logFromController = LogFromController;
             }
             IsRunning = true;
-            _logFromController?.Invoke(this, $"{_startTime.TimeOfDay}, Presentation started, Visitors: {_listOfVisitors.Count}, People: {_listOfVisitors.Count + _listOfVisitors.Sum(s => s.Adults)}");
+            _logFromController?.Invoke(this, $"{_startTime.TimeOfDay}, Presentation started, Visitors: {_listOfVisitors.Count}, People: {_listOfVisitors.Count + _listOfVisitors.Sum(s => s.Adults)}, waiting {_waiters.Count + _waiters.Sum(s => s.Adults)}");
         }
 
         /// <summary>
@@ -68,7 +70,7 @@ namespace TadeotSimulation.Core
             if (_startTime.AddMinutes(PRESENTATION_MINUTES) == fastClockTime)
             {
                 IsRunning = false;
-                _logFromController?.Invoke(this, $"{fastClockTime.TimeOfDay}, Presentation finished, Visitors: {_listOfVisitors.Count}, People: {_listOfVisitors.Count + _listOfVisitors.Sum(s => s.Adults)}");
+                _logFromController?.Invoke(this, $"{fastClockTime.TimeOfDay}, Presentation finished, Visitors: {_listOfVisitors.Count}, People: {_listOfVisitors.Count + _listOfVisitors.Sum(s => s.Adults)}, waiting {_waiters.Count + _waiters.Sum(s => s.Adults)}");
             }
         }
         #endregion
