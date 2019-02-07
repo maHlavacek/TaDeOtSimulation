@@ -48,8 +48,18 @@ namespace TadeotSimulation.Core
         /// </summary>
         public void StartSimulation()
         {
+            FastClock.Instance.OneMinuteIsOver += Instance_OneMinuteIsOver;
+            FastClock.Instance.Factor = 6000;
+            DateTime timeToStart = _listOdVisitors.Select(s => s.EntryTime).Min();
+            FastClock.Instance.Time = timeToStart.AddMinutes(-60);
+            Log?.Invoke(this, "Simulation started");
         }
 
+        private void Instance_OneMinuteIsOver(object sender, DateTime fastClockTime)
+        {
+            List<Visitor> waitingPeople = new List<Visitor>();
+            waitingPeople = _listOdVisitors.Where(w => w.EntryTime <= fastClockTime).ToList();
 
+        }
     }
 }
