@@ -9,6 +9,10 @@ namespace TadeotSimulation.Core
         private DateTime _startTime;
         private List<Visitor> _listOfVisitors;
         private static Presentation _instance;
+        private EventHandler<string> _logFromController;
+
+        public bool IsRunning { get; private set; }
+
         public static Presentation Instance
         {
             get
@@ -24,6 +28,7 @@ namespace TadeotSimulation.Core
 
         private Presentation()
         {
+            FastClock.Instance.OneMinuteIsOver += Instance_OneMinuteIsOver;
         }
 
         public void StartPresentation(List<Visitor> visitors,EventHandler<string> LogFromController)
@@ -31,15 +36,20 @@ namespace TadeotSimulation.Core
             _listOfVisitors = new List<Visitor>();
             _listOfVisitors = visitors;
             _startTime = FastClock.Instance.Time;
-            FastClock.Instance.OneMinuteIsOver += Instance_OneMinuteIsOver;
-            LogFromController?.Invoke(this, $"{_startTime}, Presentation started, Visitors: {_listOfVisitors.Count}, People: {_listOfVisitors.Count + _listOfVisitors.Sum(s => s.Adults)}");
+            if(_logFromController == null)
+            {
+                _logFromController = LogFromController;
+            }
+            IsRunning = true;
+            _logFromController?.Invoke(this, $"{_startTime.TimeOfDay}, Presentation started, Visitors: {_listOfVisitors.Count}, People: {_listOfVisitors.Count + _listOfVisitors.Sum(s => s.Adults)}");
         }
 
         private void Instance_OneMinuteIsOver(object sender, DateTime fastClockTime)
         {
             if(_startTime.AddMinutes(PRESENTATION_MINUTES) == fastClockTime)
             {
-                
+                IsRunning = false;
+                _logFromController?.Invoke(this, $"{fastClockTime.TimeOfDay}, Presentation finished, Visitors: {_listOfVisitors.Count}, People: {_listOfVisitors.Count + _listOfVisitors.Sum(s => s.Adults)}");
             }
         }
     }

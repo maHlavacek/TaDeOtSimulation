@@ -59,10 +59,19 @@ namespace TadeotSimulation.Core
         {
             List<Visitor> waitingPeople = new List<Visitor>();
             waitingPeople = _listOdVisitors.Where(w => w.EntryTime <= fastClockTime).ToList();
-            if (waitingPeople.Count + waitingPeople.Sum(s => s.Adults) >= MIN_PEOPLE_PER_PRESENTATION)
+            if (waitingPeople.Count + waitingPeople.Sum(s => s.Adults) >= MIN_PEOPLE_PER_PRESENTATION
+                && !Presentation.Instance.IsRunning)
             { 
             Presentation.Instance.StartPresentation(waitingPeople, Log);
             }
+            if(Presentation.Instance.IsRunning)
+            {
+                foreach (Visitor visitor in waitingPeople)
+                {
+                    _listOdVisitors.Remove(visitor);
+                }
+            }
+           
         }
     }
 }
