@@ -8,6 +8,7 @@ namespace TadeotSimulation.Core
 {
     public class Controller
     {
+        #region Fields
         private const int MIN_PEOPLE_PER_PRESENTATION = 10;
         private const int MAX_PEOPLE_PER_PRESENTATION = 20;
         private const int MAX_WAITING_MINUTES = 40;
@@ -15,13 +16,16 @@ namespace TadeotSimulation.Core
         public event EventHandler<string> Log;
 
         private List<Visitor> _listOdVisitors;
+        #endregion
 
-
+        #region Constructor
         public Controller()
         {
             _listOdVisitors = new List<Visitor>();
         }
+        #endregion
 
+        #region Methods
         /// <summary>
         /// Besucher werden aus der csv-Datei in den Arbeitsvorrat eingelesen
         /// </summary>
@@ -54,24 +58,29 @@ namespace TadeotSimulation.Core
             FastClock.Instance.OneMinuteIsOver += Instance_OneMinuteIsOver;
             FastClock.Instance.IsRunning = true;
         }
-
+        /// <summary>
+        /// Checks the sum of visitors and when the minimum of people per presentation is reached,
+        /// the presentation will start
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="fastClockTime"></param>
         private void Instance_OneMinuteIsOver(object sender, DateTime fastClockTime)
         {
             List<Visitor> waitingPeople = new List<Visitor>();
             waitingPeople = _listOdVisitors.Where(w => w.EntryTime <= fastClockTime).ToList();
             if (waitingPeople.Count + waitingPeople.Sum(s => s.Adults) >= MIN_PEOPLE_PER_PRESENTATION
                 && !Presentation.Instance.IsRunning)
-            { 
-            Presentation.Instance.StartPresentation(waitingPeople, Log);
+            {
+                Presentation.Instance.StartPresentation(waitingPeople, Log);
             }
-            if(Presentation.Instance.IsRunning)
+            if (Presentation.Instance.IsRunning)
             {
                 foreach (Visitor visitor in waitingPeople)
                 {
                     _listOdVisitors.Remove(visitor);
                 }
             }
-           
         }
+        #endregion
     }
 }

@@ -6,37 +6,51 @@ namespace TadeotSimulation.Core
 {
     public class Presentation
     {
+        #region Fields
+        private const int PRESENTATION_MINUTES = 10;
+
         private DateTime _startTime;
         private List<Visitor> _listOfVisitors;
         private static Presentation _instance;
         private EventHandler<string> _logFromController;
+        #endregion
 
+
+        #region Properties
         public bool IsRunning { get; private set; }
 
         public static Presentation Instance
         {
             get
             {
-                if(_instance == null)
+                if (_instance == null)
                 {
                     _instance = new Presentation();
                 }
                 return _instance;
             }
         }
-        private const int PRESENTATION_MINUTES = 10;
+        #endregion
 
+        #region Constructor
         private Presentation()
         {
             FastClock.Instance.OneMinuteIsOver += Instance_OneMinuteIsOver;
         }
+        #endregion
 
-        public void StartPresentation(List<Visitor> visitors,EventHandler<string> LogFromController)
+        #region Methods
+        /// <summary>
+        /// Starts the presentation and notify the console
+        /// </summary>
+        /// <param name="visitors"></param>
+        /// <param name="LogFromController"></param>
+        public void StartPresentation(List<Visitor> visitors, EventHandler<string> LogFromController)
         {
             _listOfVisitors = new List<Visitor>();
             _listOfVisitors = visitors;
             _startTime = FastClock.Instance.Time;
-            if(_logFromController == null)
+            if (_logFromController == null)
             {
                 _logFromController = LogFromController;
             }
@@ -44,13 +58,19 @@ namespace TadeotSimulation.Core
             _logFromController?.Invoke(this, $"{_startTime.TimeOfDay}, Presentation started, Visitors: {_listOfVisitors.Count}, People: {_listOfVisitors.Count + _listOfVisitors.Sum(s => s.Adults)}");
         }
 
+        /// <summary>
+        /// Check if the presentation is finished and notify the console
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="fastClockTime"></param>
         private void Instance_OneMinuteIsOver(object sender, DateTime fastClockTime)
         {
-            if(_startTime.AddMinutes(PRESENTATION_MINUTES) == fastClockTime)
+            if (_startTime.AddMinutes(PRESENTATION_MINUTES) == fastClockTime)
             {
                 IsRunning = false;
                 _logFromController?.Invoke(this, $"{fastClockTime.TimeOfDay}, Presentation finished, Visitors: {_listOfVisitors.Count}, People: {_listOfVisitors.Count + _listOfVisitors.Sum(s => s.Adults)}");
             }
         }
+        #endregion
     }
 }
