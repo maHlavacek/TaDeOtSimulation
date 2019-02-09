@@ -14,11 +14,12 @@ namespace TadeotSimulation.Core
         private List<Visitor> _waiters;
         private static Presentation _instance;
         private EventHandler<string> _logFromController;
+        public event EventHandler<bool> PresentationFinished;
         #endregion
 
 
         #region Properties
-        public bool IsRunning { get; private set; }
+      //  public bool IsRunning { get; private set; }
 
         public static Presentation Instance
         {
@@ -56,8 +57,9 @@ namespace TadeotSimulation.Core
             {
                 _logFromController = LogFromController;
             }
-            IsRunning = true;
-            _logFromController?.Invoke(this, $"{_startTime.TimeOfDay}, Presentation started, Visitors: {_listOfVisitors.Count}, People: {_listOfVisitors.Count + _listOfVisitors.Sum(s => s.Adults)}, waiting {_waiters.Count + _waiters.Sum(s => s.Adults)}");
+            PresentationFinished?.Invoke(this, false);
+           // IsRunning = true;
+            //_logFromController?.Invoke(this, $"{_startTime.TimeOfDay}, Presentation started, Visitors: {_listOfVisitors.Count}, People: {_listOfVisitors.Count + _listOfVisitors.Sum(s => s.Adults)}, waiting {_waiters.Count + _waiters.Sum(s => s.Adults)}");
         }
 
         /// <summary>
@@ -69,8 +71,10 @@ namespace TadeotSimulation.Core
         {
             if (_startTime.AddMinutes(PRESENTATION_MINUTES) == fastClockTime)
             {
-                IsRunning = false;
-                _logFromController?.Invoke(this, $"{fastClockTime.TimeOfDay}, Presentation finished, Visitors: {_listOfVisitors.Count}, People: {_listOfVisitors.Count + _listOfVisitors.Sum(s => s.Adults)}, waiting {_waiters.Count + _waiters.Sum(s => s.Adults)}");
+                PresentationFinished?.Invoke(this, true);
+
+                // IsRunning = false;
+                //_logFromController?.Invoke(this, $"{fastClockTime.TimeOfDay}, Presentation finished, Visitors: {_listOfVisitors.Count}, People: {_listOfVisitors.Count + _listOfVisitors.Sum(s => s.Adults)}, waiting {_waiters.Count + _waiters.Sum(s => s.Adults)}");
             }
         }
         #endregion

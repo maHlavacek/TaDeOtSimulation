@@ -16,6 +16,7 @@ namespace TadeotSimulation.Core
         public event EventHandler<string> Log;
 
         private List<Visitor> _listOdVisitors;
+        private bool _presentationIsFinished = true;
         #endregion
 
         #region Constructor
@@ -56,8 +57,23 @@ namespace TadeotSimulation.Core
             DateTime timeToStart = _listOdVisitors.Select(s => s.EntryTime).Min().AddMinutes(-60);
             FastClock.Instance.Time = timeToStart;
             FastClock.Instance.OneMinuteIsOver += Instance_OneMinuteIsOver;
+            Presentation.Instance.PresentationFinished += Instance_PresentationFinished;
             FastClock.Instance.IsRunning = true;
         }
+
+        private void Instance_PresentationFinished(object sender, bool e)
+        {
+            _presentationIsFinished = e;
+            if(e)
+            {
+                Log?.Invoke(this, $"Presentation finished :{FastClock.Instance.Time.TimeOfDay} ");
+            }
+            else
+            {
+                Log?.Invoke(this, $"Presentation started :{FastClock.Instance.Time.TimeOfDay} ");
+            }
+        }
+
         /// <summary>
         /// Checks the sum of visitors and when the minimum of people per presentation is reached,
         /// the presentation will start
@@ -69,7 +85,7 @@ namespace TadeotSimulation.Core
             List<Visitor> waitingPeople = new List<Visitor>();
             waitingPeople = _listOdVisitors.Where(w => w.EntryTime <= fastClockTime).ToList();
             if (waitingPeople.Count + waitingPeople.Sum(s => s.Adults) >= MIN_PEOPLE_PER_PRESENTATION
-                && !Presentation.Instance.IsRunning)
+                && _presentationIsFinished)
             {
                 foreach (Visitor visitor in waitingPeople)
                 {
