@@ -13,16 +13,21 @@ namespace TadeotSimulation.Core
         private const int MAX_PEOPLE_PER_PRESENTATION = 20;
         private const int MAX_WAITING_MINUTES = 40;
 
+        private int _countVisitors;
+        private int _countPeople;
+        private int _countForPresentation;
+        private DateTime _lastPresentationFinished;
+
         public event EventHandler<string> Log;
 
-        private List<Visitor> _listOdVisitors;
+        private List<Visitor> _listOfVisitors;
         private bool _presentationIsFinished = true;
         #endregion
 
         #region Constructor
         public Controller()
         {
-            _listOdVisitors = new List<Visitor>();
+            _listOfVisitors = new List<Visitor>();
         }
         #endregion
 
@@ -42,9 +47,9 @@ namespace TadeotSimulation.Core
                 int adults = int.Parse(columns[3]);
                 DateTime entryDateAndTime = DateTime.Parse(columns[1] + " " + columns[2]);
                 Visitor visitor = new Visitor(id, adults, entryDateAndTime);
-                _listOdVisitors.Add(visitor);
+                _listOfVisitors.Add(visitor);
             }
-            Log?.Invoke(this, $"Read {_listOdVisitors.Count} visitors with {_listOdVisitors.Sum(s => s.Adults)} adults from csv-file");
+            Log?.Invoke(this, $"Read {_listOfVisitors.Count} visitors with {_listOfVisitors.Sum(s => s.Adults)} adults from csv-file");
         }
 
         /// <summary>
@@ -54,7 +59,7 @@ namespace TadeotSimulation.Core
         public void StartSimulation()
         {
             FastClock.Instance.Factor = 6000;
-            DateTime timeToStart = _listOdVisitors.Select(s => s.EntryTime).Min().AddMinutes(-60);
+            DateTime timeToStart = _listOfVisitors.Select(s => s.EntryTime).Min().AddMinutes(-60);
             FastClock.Instance.Time = timeToStart;
             FastClock.Instance.OneMinuteIsOver += Instance_OneMinuteIsOver;
             Presentation.Instance.PresentationFinished += Instance_PresentationFinished;
@@ -66,11 +71,13 @@ namespace TadeotSimulation.Core
             _presentationIsFinished = e;
             if(e)
             {
-                Log?.Invoke(this, $"Presentation finished :{FastClock.Instance.Time.TimeOfDay} ");
+                _lastPresentationFinished = FastClock.Instance.Time;
+                Log?.Invoke(this, $"Presentation finished :{FastClock.Instance.Time.TimeOfDay}, Visitors {_countForPresentation}, waiting: {_countPeople} ");
             }
             else
             {
-                Log?.Invoke(this, $"Presentation started :{FastClock.Instance.Time.TimeOfDay} ");
+                Log?.Invoke(this, $"Presentation started :{FastClock.Instance.Time.TimeOfDay}, Visitors: {_countVisitors}, People: {_countPeople}, waiting {0} ");
+                _countForPresentation = _countPeople;
             }
         }
 
@@ -83,15 +90,23 @@ namespace TadeotSimulation.Core
         private void Instance_OneMinuteIsOver(object sender, DateTime fastClockTime)
         {
             List<Visitor> waitingPeople = new List<Visitor>();
-            waitingPeople = _listOdVisitors.Where(w => w.EntryTime <= fastClockTime).ToList();
-            if (waitingPeople.Count + waitingPeople.Sum(s => s.Adults) >= MIN_PEOPLE_PER_PRESENTATION
-                && _presentationIsFinished)
+
+            waitingPeople = _listOfVisitors.Where(w => w.EntryTime <= fastClockTime).ToList();
+            _countVisitors = waitingPeople.Count;
+            _countPeople = waitingPeople.Count + waitingPeople.Sum(s => s.Adults);
+
+            if (
+                waitingPeople.Count + waitingPeople.Sum(s => s.Adults) >= MIN_PEOPLE_PER_PRESENTATION
+                && _presentationIsFinished 
+                || _lastPresentationFinished.AddMinutes(MAX_WAITING_MINUTES) == fastClockTime 
+                && waitingPeople.Count > 0
+                )
             {
                 foreach (Visitor visitor in waitingPeople)
                 {
-                    _listOdVisitors.Remove(visitor);
+                    _listOfVisitors.Remove(visitor);
                 }
-                Presentation.Instance.StartPresentation(waitingPeople, Log, _listOdVisitors.Where(w => w.EntryTime <= fastClockTime).ToList());
+                Presentation.Instance.StartPresentation(waitingPeople);
             }
         }
         #endregion
