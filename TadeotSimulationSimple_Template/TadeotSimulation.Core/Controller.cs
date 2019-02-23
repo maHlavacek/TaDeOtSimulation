@@ -67,26 +67,44 @@ namespace TadeotSimulation.Core
             FastClock.Instance.IsRunning = true;
         }
 
-        private void Instance_PresentationFinished(object sender, bool e)
+        private void Instance_PresentationFinished(object sender, bool presentationIsFinished)
         {
-            _presentationIsFinished = e;
-            if(e)
+            _presentationIsFinished = presentationIsFinished;
+            StringBuilder stringBuilder = new StringBuilder();
+
+            if (presentationIsFinished)
             {
                 _lastPresentationFinished = FastClock.Instance.Time;
-                Log?.Invoke(this, $"Presentation finished :{FastClock.Instance.Time.TimeOfDay}, Visitors {_countForPresentation}, waiting; {_waitingPeople.Count + _waitingPeople.Sum(s => s.Adults)} ");
+                stringBuilder.Append($"Presentation finished :{FastClock.Instance.Time.TimeOfDay}, ");
+
+                if (_listOfVisitors.Count > 0)
+                {
+                    stringBuilder.Append($"Visitors {_countForPresentation}, waiting; ");
+                }
+                else
+                {
+                    stringBuilder.Append($"Visitors {Presentation.Instance.SumOfVisitors}, waiting; ");
+                }
+
+                stringBuilder.Append($"{ _waitingPeople.Count + _waitingPeople.Sum(s => s.Adults)} ");
+
             }
             else
             {
-                Log?.Invoke(this, $"Presentation started :{FastClock.Instance.Time.TimeOfDay}, Visitors: {_countVisitors}, People: {_countPeople}, waiting: {_waitingPeople.Count + _waitingPeople.Sum(s => s.Adults)} ");
+                stringBuilder.Append($"Presentation started :{FastClock.Instance.Time.TimeOfDay}, ");
+                stringBuilder.Append($"Visitors: {_countVisitors}, ");
+                stringBuilder.Append($"People: {_countPeople}, ");
+                stringBuilder.Append($"waiting: {_waitingPeople.Count + _waitingPeople.Sum(s => s.Adults)} ");
                 _countForPresentation = _countPeople;
             }
+            Log?.Invoke(this, stringBuilder.ToString());
         }
 
-       /// <summary>
-       /// One minute is over
-       /// </summary>
-       /// <param name="sender"></param>
-       /// <param name="fastClockTime"></param>
+        /// <summary>
+        /// One minute is over
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="fastClockTime"></param>
         private void Instance_OneMinuteIsOver(object sender, DateTime fastClockTime)
         {
             OnOneMinuteIsOver(fastClockTime);
@@ -99,7 +117,7 @@ namespace TadeotSimulation.Core
         /// </summary>
         /// <param name="time"></param>
         public void OnOneMinuteIsOver(DateTime time)
-        {
+        {         
             _waitingPeople = _listOfVisitors.Where(w => w.EntryTime <= time).ToList();
             _countVisitors = _waitingPeople.Count;
             _countPeople = _waitingPeople.Count + _waitingPeople.Sum(s => s.Adults);
@@ -117,10 +135,8 @@ namespace TadeotSimulation.Core
                 }
                 Presentation.Instance.StartPresentation(_waitingPeople);
             }
-            if (_listOfVisitors.Count == 0)
-            {
-                Log?.Invoke(this, $"ende {Presentation.Instance.SumOfVisitors}");
-            }
+            
+           
         }
         #endregion
     }
