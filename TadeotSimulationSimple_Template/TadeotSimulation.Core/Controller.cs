@@ -93,7 +93,8 @@ namespace TadeotSimulation.Core
                     stringBuilder.Append($"Visitors {Presentation.Instance.SumOfVisitors}, ");
                     stringBuilder.Append($"waiting: { _waitingPeople.Count + _waitingPeople.Sum(s => s.Adults)} ");
                     stringBuilder.Append($"\n!!! SIMULATION BEENDET, beenden mit Eingabetaste...");
-
+                    FastClock.Instance.OneMinuteIsOver -= Instance_OneMinuteIsOver;
+                    FastClock.Instance.IsRunning = false;
                 }
 
             }
