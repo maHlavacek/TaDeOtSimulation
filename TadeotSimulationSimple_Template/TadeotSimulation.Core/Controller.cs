@@ -16,6 +16,7 @@ namespace TadeotSimulation.Core
         private int _countVisitors;
         private int _countPeople;
         private int _countForPresentation;
+        private List<Visitor> _waitingPeople;
         private DateTime _lastPresentationFinished;
 
         public event EventHandler<string> Log;
@@ -72,41 +73,49 @@ namespace TadeotSimulation.Core
             if(e)
             {
                 _lastPresentationFinished = FastClock.Instance.Time;
-                Log?.Invoke(this, $"Presentation finished :{FastClock.Instance.Time.TimeOfDay}, Visitors {_countForPresentation}, waiting: {_countPeople} ");
+                Log?.Invoke(this, $"Presentation finished :{FastClock.Instance.Time.TimeOfDay}, Visitors {_countForPresentation}, waiting; {_waitingPeople.Count + _waitingPeople.Sum(s => s.Adults)} ");
             }
             else
             {
-                Log?.Invoke(this, $"Presentation started :{FastClock.Instance.Time.TimeOfDay}, Visitors: {_countVisitors}, People: {_countPeople}, waiting {0} ");
+                Log?.Invoke(this, $"Presentation started :{FastClock.Instance.Time.TimeOfDay}, Visitors: {_countVisitors}, People: {_countPeople}, waiting: {_waitingPeople.Count + _waitingPeople.Sum(s => s.Adults)} ");
                 _countForPresentation = _countPeople;
             }
         }
+
+       /// <summary>
+       /// One minute is over
+       /// </summary>
+       /// <param name="sender"></param>
+       /// <param name="fastClockTime"></param>
+        private void Instance_OneMinuteIsOver(object sender, DateTime fastClockTime)
+        {
+            OnOneMinuteIsOver(fastClockTime);
+        }
+
 
         /// <summary>
         /// Checks the sum of visitors and when the minimum of people per presentation is reached,
         /// the presentation will start
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="fastClockTime"></param>
-        private void Instance_OneMinuteIsOver(object sender, DateTime fastClockTime)
+        /// <param name="time"></param>
+        public void OnOneMinuteIsOver(DateTime time)
         {
-            List<Visitor> waitingPeople = new List<Visitor>();
-
-            waitingPeople = _listOfVisitors.Where(w => w.EntryTime <= fastClockTime).ToList();
-            _countVisitors = waitingPeople.Count;
-            _countPeople = waitingPeople.Count + waitingPeople.Sum(s => s.Adults);
+            _waitingPeople = _listOfVisitors.Where(w => w.EntryTime <= time).ToList();
+            _countVisitors = _waitingPeople.Count;
+            _countPeople = _waitingPeople.Count + _waitingPeople.Sum(s => s.Adults);
 
             if (
-                waitingPeople.Count + waitingPeople.Sum(s => s.Adults) >= MIN_PEOPLE_PER_PRESENTATION
-                && _presentationIsFinished 
-                || _lastPresentationFinished.AddMinutes(MAX_WAITING_MINUTES) == fastClockTime 
-                && waitingPeople.Count > 0
+                _waitingPeople.Count + _waitingPeople.Sum(s => s.Adults) >= MIN_PEOPLE_PER_PRESENTATION
+                && _presentationIsFinished
+                || _lastPresentationFinished.AddMinutes(MAX_WAITING_MINUTES) == time
+                && _waitingPeople.Count > 0
                 )
             {
-                foreach (Visitor visitor in waitingPeople)
+                foreach (Visitor visitor in _waitingPeople)
                 {
                     _listOfVisitors.Remove(visitor);
                 }
-                Presentation.Instance.StartPresentation(waitingPeople);
+                Presentation.Instance.StartPresentation(_waitingPeople);
             }
         }
         #endregion
