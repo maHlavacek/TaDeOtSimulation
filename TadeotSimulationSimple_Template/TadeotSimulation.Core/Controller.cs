@@ -67,6 +67,11 @@ namespace TadeotSimulation.Core
             FastClock.Instance.IsRunning = true;
         }
 
+        /// <summary>
+        /// Crate the message for the console
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="presentationIsFinished"></param>
         private void Instance_PresentationFinished(object sender, bool presentationIsFinished)
         {
             _presentationIsFinished = presentationIsFinished;
@@ -79,14 +84,17 @@ namespace TadeotSimulation.Core
 
                 if (_listOfVisitors.Count > 0)
                 {
-                    stringBuilder.Append($"Visitors {_countForPresentation}, waiting; ");
+                    stringBuilder.Append($"Visitors {_countForPresentation}, ");
+                    stringBuilder.Append($"waiting: { _waitingPeople.Count + _waitingPeople.Sum(s => s.Adults)} ");
+
                 }
                 else
                 {
-                    stringBuilder.Append($"Visitors {Presentation.Instance.SumOfVisitors}, waiting; ");
-                }
+                    stringBuilder.Append($"Visitors {Presentation.Instance.SumOfVisitors}, ");
+                    stringBuilder.Append($"waiting: { _waitingPeople.Count + _waitingPeople.Sum(s => s.Adults)} ");
+                    stringBuilder.Append($"\n!!! SIMULATION BEENDET, beenden mit Eingabetaste...");
 
-                stringBuilder.Append($"{ _waitingPeople.Count + _waitingPeople.Sum(s => s.Adults)} ");
+                }
 
             }
             else
