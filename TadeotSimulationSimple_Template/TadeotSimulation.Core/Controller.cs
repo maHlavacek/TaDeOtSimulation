@@ -18,7 +18,7 @@ namespace TadeotSimulation.Core
         private int _countForPresentation;
         private List<Visitor> _waitingPeople;
         private DateTime _lastPresentationFinished;
-
+       
         public event EventHandler<string> Log;
 
         private List<Visitor> _listOfVisitors;
@@ -29,6 +29,7 @@ namespace TadeotSimulation.Core
         public Controller()
         {
             _listOfVisitors = new List<Visitor>();
+            _waitingPeople = new List<Visitor>();
         }
         #endregion
 
@@ -86,7 +87,6 @@ namespace TadeotSimulation.Core
                 {
                     stringBuilder.Append($"Visitors {_countForPresentation}, ");
                     stringBuilder.Append($"waiting: { _waitingPeople.Count + _waitingPeople.Sum(s => s.Adults)} ");
-
                 }
                 else
                 {
@@ -103,7 +103,7 @@ namespace TadeotSimulation.Core
                 stringBuilder.Append($"Presentation started :{FastClock.Instance.Time.TimeOfDay}, ");
                 stringBuilder.Append($"Visitors: {_countVisitors}, ");
                 stringBuilder.Append($"People: {_countPeople}, ");
-                stringBuilder.Append($"waiting: {_waitingPeople.Count + _waitingPeople.Sum(s => s.Adults)} ");
+                stringBuilder.Append($"waiting: {_waitingPeople.Count + _waitingPeople.Sum(s => s.Adults) - Presentation.Instance.SumOfCurrentPeople} ");
                 _countForPresentation = _countPeople;
             }
             Log?.Invoke(this, stringBuilder.ToString());
@@ -143,9 +143,7 @@ namespace TadeotSimulation.Core
                     _listOfVisitors.Remove(visitor);
                 }
                 Presentation.Instance.StartPresentation(_waitingPeople);
-            }
-            
-           
+            }          
         }
         #endregion
     }

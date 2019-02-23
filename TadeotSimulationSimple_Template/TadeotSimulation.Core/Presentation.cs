@@ -16,8 +16,14 @@ namespace TadeotSimulation.Core
 
 
         #region Properties
-
         public int SumOfVisitors { get; private set; }
+        public int SumOfCurrentPeople
+        {
+            get
+            {
+                return _listOfVisitors.Count + _listOfVisitors.Sum(s => s.Adults);
+            }
+        }
 
         public static Presentation Instance
         {
