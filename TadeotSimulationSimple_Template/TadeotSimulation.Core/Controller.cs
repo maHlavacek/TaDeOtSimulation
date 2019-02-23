@@ -117,6 +117,10 @@ namespace TadeotSimulation.Core
                 }
                 Presentation.Instance.StartPresentation(_waitingPeople);
             }
+            if (_listOfVisitors.Count == 0)
+            {
+                Log?.Invoke(this, $"ende {Presentation.Instance.SumOfVisitors}");
+            }
         }
         #endregion
     }

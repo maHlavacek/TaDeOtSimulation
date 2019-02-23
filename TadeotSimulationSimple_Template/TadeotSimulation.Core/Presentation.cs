@@ -8,18 +8,16 @@ namespace TadeotSimulation.Core
     {
         #region Fields
         private const int PRESENTATION_MINUTES = 10;
-
         private DateTime _startTime;
         private List<Visitor> _listOfVisitors;
-        private List<Visitor> _waiters;
         private static Presentation _instance;
-        private EventHandler<string> _logFromController;
         public event EventHandler<bool> PresentationFinished;
         #endregion
 
 
         #region Properties
-      //  public bool IsRunning { get; private set; }
+
+        public int SumOfVisitors { get; private set; }
 
         public static Presentation Instance
         {
@@ -38,6 +36,8 @@ namespace TadeotSimulation.Core
         private Presentation()
         {
             FastClock.Instance.OneMinuteIsOver += Instance_OneMinuteIsOver;
+            _listOfVisitors = new List<Visitor>();
+
         }
         #endregion
 
@@ -49,14 +49,14 @@ namespace TadeotSimulation.Core
         /// <param name="LogFromController"></param>
         public void StartPresentation(List<Visitor> visitors)
         {
-            _listOfVisitors = new List<Visitor>();
-            _listOfVisitors = visitors;         
+            _listOfVisitors = visitors;
+            SumOfVisitors += visitors.Count;
             _startTime = FastClock.Instance.Time;
             PresentationFinished?.Invoke(this, false);
         }
 
         /// <summary>
-        /// Check if the presentation is finished and notify the console
+        /// Check if the presentation is finished and notify the controller
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="fastClockTime"></param>
